@@ -85,7 +85,7 @@ Correct folder layout:
 C:\platform-tools\  
  adb.exe  
  fastboot.exe  
- Samsung_Multi_Debloater.bat  ← place script here
+ Samsung_Debloater.bat  ← place script here
 
 If the folder does not contain `adb.exe`, the script will not run.
 
@@ -119,7 +119,7 @@ Tap **Allow**.
 
 5. Launch the script:
 
-   Samsung_Multi_Debloater.bat
+   Samsung_Debloater.bat 
 
 6. The script will:
 - Detect ADB
@@ -151,7 +151,7 @@ Run it from Command Prompt:
 
 cmd  
 cd C:\platform-tools  
-Samsung_Multi_Debloater.bat
+Samsung_Debloater.bat
 
 ### adb.exe not found
 You did not place the script in the same folder as platform-tools.
