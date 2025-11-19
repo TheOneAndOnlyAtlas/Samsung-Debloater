@@ -125,6 +125,10 @@ com.vcast.mediamanager
 com.verizon.llkagent
 com.verizon.mips.services
 com.vzw.visualvoicemail
+com.samsung.vzwapiservice
+com.verizon.obdm
+com.securityandprivacy.android.verizon.vms
+com.verizon.onetalk.dialer
 com.att.dh
 com.att.callprotect
 com.att.tv
@@ -139,3 +143,6 @@ com.mizmowireless.tethering
 com.aura.oobe.samsung.gl
 com.aura.oobe.samsung
 com.aura.oobe.att
+com.xfinitymobile.cometcarrierservice
+com.spectrum.cm.headless
+com.uscc.ecid
