@@ -1,5 +1,7 @@
 # Samsung One-Click Multi-Mode Debloater (ADB + Batch)
 
+This script was made for S Series devices running (Android 15-16) / (One UI 7-8) however other samsung devices should work as well.
+
 A Windows batch script that allows you to **debloat Samsung Android phones** automatically using ADB.  
 It includes a clean multi-mode menu, device detection, Samsung verification, and a full restore mode.
 
@@ -14,27 +16,29 @@ This debloater includes **five powerful debloat modes**:
 Full package lists for each mode can be seen in the main branch.
 
 ### 1️⃣ Full Debloat
-Removes **Samsung apps**, **Google apps**, **carrier apps**, and any other third-party packages you place in the list.
+Removes **Samsung apps**, **Google apps**, **carrier apps**, and any other miscellaneous third-party packages.
 
 ### 2️⃣ Samsung-Only Debloat
-Removes **only Samsung apps** (plus carrier bloat).  
-Google apps remain untouched.
+Removes **only Samsung apps**.  
+Google/carrier apps remain untouched.
 
 ### 3️⃣ Google-Only Debloat
-Removes **Google apps/services** you define (plus carrier bloat).  
-Samsung apps remain untouched.
+Removes **Google apps/services**.  
+Samsung/carrier apps remain untouched.
 
 ### 4️⃣ Carrier-Only Debloat
-Removes **all carrier/oem bloat**, such as:
+Removes **all carrier bloat**, such as:
 - T-Mobile
 - AT&T
 - Verizon
 - Sprint
 - Boost
 - Cricket
+- US Cellular
+- Spectrum
+- Xfinity Mobile
 - Aura OEM onboarding apps
-- Diagnostics / analytics / MyCarrier apps  
-(whatever you list here)
+- Diagnostics / analytics / MyCarrier apps
 
 ### 5️⃣ Restore Mode
 Re-enables **every package you list** in the restore block.  
@@ -53,8 +57,7 @@ Samsung USB Driver for Mobile Phones (official Samsung website)
 
 **Steps:**
 1. Download the installer  
-2. Run setup  
-3. Reboot your PC (recommended)
+2. Run setup
 
 ---
 
@@ -188,3 +191,4 @@ You may contribute by:
 - Documenting safe/unsafe packages
 - Providing curated package lists
 - Suggesting new features
+- Email questions & suggestions to samsungdebloater@protonmail.com
