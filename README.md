@@ -4,7 +4,6 @@ A Windows batch script that allows you to **debloat Samsung Android phones** aut
 It includes a clean multi-mode menu, device detection, Samsung verification, and a full restore mode.
 
 This README provides full installation instructions, usage steps, and guidelines for organizing your package lists.  
-⚠️ *Package names are **not** included here — you will insert them yourself inside the `.bat` script.*  
 
 ---
 
