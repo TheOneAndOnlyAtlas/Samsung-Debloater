@@ -1,57 +1,78 @@
 @echo off
 setlocal EnableDelayedExpansion
-title Samsung Multi-Mode Debloater - Clean Version
+title Samsung Multi-Mode Debloater v1.1
+cls
+echo.
+echo ================================
+echo   Samsung Multi-Mode Debloater
+echo ================================
+echo.
+echo Initializing ADB server (5-15 sec first time)...
+echo.
 
-:: ================================
-:: CHECK ADB
-:: ================================
-where adb >nul 2>nul
-if errorlevel 1 (
+:: Kill zombie ADB
+taskkill /f /im adb.exe >nul 2>&1
+start "" /b adb start-server >nul 2>&1
+
+set "count=0"
+:WAIT_ADB
+set /a count+=1
+adb devices 2>nul | findstr /r /c:"device[^ ]*$" /c:"recovery" >nul
+if !errorlevel! == 0 goto ADB_READY
+if %count% gtr 35 (
     echo.
-    echo [ERROR] adb.exe not found!
-    echo Put this .bat file in platform-tools folder or add it to PATH.
+    echo [WARN] ADB slow - restarting server...
+    taskkill /f /im adb.exe >nul 2>&1
+    start "" /b adb start-server >nul 2>&1
+    timeout /t 3 >nul
+    set "count=0"
+)
+echo   Waiting for ADB server... (%count%s)
+timeout /t 1 >nul
+goto WAIT_ADB
+
+:ADB_READY
+echo.
+echo [OK] ADB server ready!
+echo.
+timeout /t 1 >nul
+
+where adb >nul 2>&1 || (
+    echo [ERROR] adb.exe not found! Place this .bat in platform-tools folder.
     pause
     exit /b 1
 )
-adb start-server >nul 2>&1
 
-:: ================================
-:: DEVICE DETECTION
-:: ================================
 :CHECK_DEVICE
 cls
 echo.
-echo Checking for connected device...
+echo Detecting device...
 adb devices
-
+echo.
 set "DEVICE_ID="
 set "UNAUTH="
 for /f "skip=1 tokens=1,2" %%a in ('adb devices') do (
     if "%%b"=="device" set "DEVICE_ID=%%a"
     if "%%b"=="unauthorized" set "UNAUTH=1"
 )
-
 if not defined DEVICE_ID (
     if defined UNAUTH (
-        echo.
-        echo [ERROR] Device unauthorized! Allow USB debugging on your phone.
+        echo [ERROR] Device unauthorized - allow USB debugging on phone!
     ) else (
-        echo.
-        echo [ERROR] No device found! Check cable / USB debugging / File Transfer mode.
+        echo [ERROR] No device found - check cable / USB debugging / MTP mode
     )
-    choice /C RQ /N /M "R=Retry, Q=Quit: "
+    echo.
+    choice /c RQ /n /m "R=Retry, Q=Quit [R/Q]: "
     if errorlevel 2 exit /b 1
     goto CHECK_DEVICE
 )
 
-echo.
-echo [OK] Device found: %DEVICE_ID%
+echo [OK] Device connected: %DEVICE_ID%
 
-:: Check if Samsung
 for /f "delims=" %%a in ('adb -s %DEVICE_ID% shell getprop ro.product.manufacturer') do set "MANUF=%%a"
 for /f "delims=" %%a in ('adb -s %DEVICE_ID% shell getprop ro.product.model') do set "MODEL=%%a"
-echo Model: %MODEL%    Manufacturer: %MANUF%
-if /I not "%MANUF%"=="samsung" (
+echo Model: %MODEL%  (Manufacturer: %MANUF%)
+if /i not "%MANUF%"=="samsung" (
     echo.
     echo [ERROR] This script only works on Samsung devices!
     pause
@@ -59,19 +80,15 @@ if /I not "%MANUF%"=="samsung" (
 )
 
 echo.
-echo Samsung device confirmed. Ready to debloat.
+echo Samsung device confirmed - ready!
 echo.
-
-:: ================================
-:: CLEAN SINGLE-LINE PROMPT
-:: ================================
-echo 1) Full debloat (Samsung + Google + carriers + misc)
-echo 2) Samsung-only (keep Google apps)
-echo 3) Google-only (keep Samsung apps)
-echo 4) Carrier-only
-echo 5) RESTORE (re-enable ALL listed packages)
+echo 1) Full debloat (Samsung + Google + Carrier)
+echo 2) Samsung apps only
+echo 3) Google apps only
+echo 4) Carrier bloat only
+echo 5) RESTORE everything
 echo.
-choice /C 12345 /N /M "Select mode (1-5) [1,2,3,4,5]?"
+choice /c 12345 /n /m "Choose mode (1-5): "
 if errorlevel 5 goto RESTORE_ALL
 if errorlevel 4 goto CARRIER_ONLY
 if errorlevel 3 goto GOOGLE_ONLY
@@ -83,7 +100,7 @@ if errorlevel 1 goto FULL_DEBLOAT
 :: =========================================================
 :FULL_DEBLOAT
 echo.
-echo FULL DEBLOAT selected - removing Samsung + Google + Carrier bloat
+echo Starting FULL DEBLOAT...
 pause
 echo.
 for %%P in (
@@ -214,6 +231,10 @@ for %%P in (
     "com.verizon.llkagent"
     "com.verizon.mips.services"
     "com.vzw.visualvoicemail"
+    "com.samsung.vzwapiservice"
+    "com.verizon.obdm"
+    "com.securityandprivacy.android.verizon.vms"
+    "com.verizon.onetalk.dialer"
     "com.att.dh"
     "com.att.callprotect"
     "com.att.tv"
@@ -228,23 +249,21 @@ for %%P in (
     "com.aura.oobe.samsung.gl"
     "com.aura.oobe.samsung"
     "com.aura.oobe.att"
+    "com.xfinitymobile.cometcarrierservice"
+    "com.spectrum.cm.headless"
+    "com.uscc.ecid"
 ) do (
     echo Disabling: %%P
-    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo    [Not found / Already disabled] %%P
+    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo   [Not found / Already disabled]
 )
 goto DONE
 
-:: =========================================================
-:: SAMSUNG-ONLY
-:: =========================================================
 :SAMSUNG_ONLY
 echo.
-echo SAMSUNG-ONLY + CARRIER + MISC selected
+echo Disabling Samsung bloat only (keeping Google)...
 pause
 echo.
 for %%P in (
-    "com.microsoft.appmanager"
-    "com.microsoft.skydrive"
     "com.samsung.android.calendar"
     "com.samsung.android.messaging"
     "com.sec.penup"
@@ -314,51 +333,18 @@ for %%P in (
     "com.sec.android.easyMover.Agent"
     "com.sec.android.mimage.avatarstickers"
     "com.sec.penup"
-    "com.tmobile.echolocate"
-    "com.tmobile.pr.adapt"
-    "com.tmobile.simlock"
-    "com.tmobile.services"
-    "com.tmobile.vvm.application"
-    "com.ironsrc.aura.tmo"
-    "com.vzw.apnlib"
-    "com.vzw.ecid"
-    "com.vzw.hss.myverizon"
-    "com.vzw.hs.android.modlite"
-    "com.vcast.mediamanager"
-    "com.verizon.llkagent"
-    "com.verizon.mips.services"
-    "com.vzw.visualvoicemail"
-    "com.att.dh"
-    "com.att.callprotect"
-    "com.att.tv"
-    "com.att.myWireless"
-    "com.att.visualvoicemail"
-    "com.att.android.attsmartwifi"
-    "com.boost.vvm"
-    "com.sprint.ms.smf.services"
-    "com.sprint.provider"
-    "com.cricketwireless.mycricket"
-    "com.mizmowireless.tethering"
-    "com.aura.oobe.samsung.gl"
-    "com.aura.oobe.samsung"
-    "com.aura.oobe.att"
 ) do (
     echo Disabling: %%P
-    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo    [Skip] %%P
+    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo   [Skip / Not found]
 )
 goto DONE
 
-:: =========================================================
-:: GOOGLE-ONLY + CARRIER
-:: =========================================================
 :GOOGLE_ONLY
 echo.
-echo GOOGLE-ONLY + CARRIER + MISC selected
+echo Disabling Google bloat only (keeping Samsung apps)...
 pause
 echo.
 for %%P in (
-    "com.microsoft.appmanager"
-    "com.microsoft.skydrive"
     "com.google.android.apps.youtube.music"
     "com.google.android.apps.docs"
     "com.google.android.apps.photos"
@@ -395,46 +381,15 @@ for %%P in (
     "com.google.android.tts"
     "com.google.android.youtube"
     "com.google.ar.core"
-    "com.tmobile.echolocate"
-    "com.tmobile.pr.adapt"
-    "com.tmobile.simlock"
-    "com.tmobile.services"
-    "com.tmobile.vvm.application"
-    "com.ironsrc.aura.tmo"
-    "com.vzw.apnlib"
-    "com.vzw.ecid"
-    "com.vzw.hss.myverizon"
-    "com.vzw.hs.android.modlite"
-    "com.vcast.mediamanager"
-    "com.verizon.llkagent"
-    "com.verizon.mips.services"
-    "com.vzw.visualvoicemail"
-    "com.att.dh"
-    "com.att.callprotect"
-    "com.att.tv"
-    "com.att.myWireless"
-    "com.att.visualvoicemail"
-    "com.att.android.attsmartwifi"
-    "com.boost.vvm"
-    "com.sprint.ms.smf.services"
-    "com.sprint.provider"
-    "com.cricketwireless.mycricket"
-    "com.mizmowireless.tethering"
-    "com.aura.oobe.samsung.gl"
-    "com.aura.oobe.samsung"
-    "com.aura.oobe.att"
 ) do (
     echo Disabling: %%P
-    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo    [Skip] %%P
+    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo   [Skip / Not found]
 )
 goto DONE
 
-:: =========================================================
-:: CARRIER-ONLY
-:: =========================================================
 :CARRIER_ONLY
 echo.
-echo CARRIER-ONLY selected
+echo Disabling carrier bloat only...
 pause
 echo.
 for %%P in (
@@ -452,6 +407,10 @@ for %%P in (
     "com.verizon.llkagent"
     "com.verizon.mips.services"
     "com.vzw.visualvoicemail"
+    "com.samsung.vzwapiservice"
+    "com.verizon.obdm"
+    "com.securityandprivacy.android.verizon.vms"
+    "com.verizon.onetalk.dialer"
     "com.att.dh"
     "com.att.callprotect"
     "com.att.tv"
@@ -466,9 +425,12 @@ for %%P in (
     "com.aura.oobe.samsung.gl"
     "com.aura.oobe.samsung"
     "com.aura.oobe.att"
+    "com.xfinitymobile.cometcarrierservice"
+    "com.spectrum.cm.headless"
+    "com.uscc.ecid"
 ) do (
     echo Disabling: %%P
-    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo    [Skip] %%P
+    adb -s %DEVICE_ID% shell pm disable-user --user 0 %%P >nul 2>&1 || echo   [Skip / Not found]
 )
 goto DONE
 
@@ -476,9 +438,10 @@ goto DONE
 :: RESTORE ALL
 :: =========================================================
 :RESTORE_ALL
+cls
 echo.
-echo RESTORE MODE - Re-enabling all packages
-echo This may take a minute...
+echo RESTORE MODE - Re-enabling ALL packages
+echo This may take 1-3 minutes...
 pause
 echo.
 for %%P in (
@@ -609,6 +572,10 @@ for %%P in (
     "com.verizon.llkagent"
     "com.verizon.mips.services"
     "com.vzw.visualvoicemail"
+    "com.samsung.vzwapiservice"
+    "com.verizon.obdm"
+    "com.securityandprivacy.android.verizon.vms"
+    "com.verizon.onetalk.dialer"
     "com.att.dh"
     "com.att.callprotect"
     "com.att.tv"
@@ -623,21 +590,25 @@ for %%P in (
     "com.aura.oobe.samsung.gl"
     "com.aura.oobe.samsung"
     "com.aura.oobe.att"
+    "com.xfinitymobile.cometcarrierservice"
+    "com.spectrum.cm.headless"
+    "com.uscc.ecid"
 ) do (
     echo Enabling: %%P
-    adb -s %DEVICE_ID% shell pm enable --user 0 %%P >nul 2>&1 || echo    [Failed / System package] %%P
+    adb -s %DEVICE_ID% shell cmd package enable %%P >nul 2>&1
+    adb -s %DEVICE_ID% shell pm enable --user 0 %%P >nul 2>&1
+    adb -s %DEVICE_ID% shell pm clear --user 0 %%P >nul 2>&1
 )
-echo.
-echo Restore complete!
 
-:: =========================================================
-:: DONE
-:: =========================================================
+echo.
+echo [OK] RESTORE COMPLETE! All apps re-enabled.
+echo Reboot your phone now.
+
 :DONE
 echo.
 echo ================================
 echo     OPERATION COMPLETE
-echo   Reboot your phone now!
+echo     Reboot recommended!
 echo ================================
 echo.
 pause
