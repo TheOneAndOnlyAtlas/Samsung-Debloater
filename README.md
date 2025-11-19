@@ -12,6 +12,8 @@ This README provides full installation instructions, usage steps, and guidelines
 
 This debloater includes **five powerful debloat modes**:
 
+Full package lists for each mode can be seen in the main branch.
+
 ### 1️⃣ Full Debloat
 Removes **Samsung apps**, **Google apps**, **carrier apps**, and any other third-party packages you place in the list.
 
@@ -169,21 +171,6 @@ Removing system apps can result in:
 
 Always test progressively.  
 Keep Restore Mode available.
-
----
-
-## 📘 Recommended Debloat Strategy
-
-1. Start with **Carrier-Only Debloat**
-2. Test  
-3. Apply **Samsung-Only Debloat**
-4. Test  
-5. Apply **Google-Only Debloat**
-6. Use **Full Debloat** only if experienced
-
-To revert:
-
-Run → **Restore All (Option 5)** → Reboot
 
 ---
 
