@@ -171,6 +171,7 @@ Removing system apps can result in:
 
 Always test progressively.  
 Keep Restore Mode available.
+
 I'm not responsible for any device failures.
 
 ---
